@@ -1,0 +1,16 @@
+{
+	"files": [
+		{
+			"name": "test1",
+			"modifiers": ["m", "h"],
+			"templatePath": "ProviderProtocol",
+			"targetPath": "target/ProviderProtocol"
+		},
+		{
+			"name": "test2",
+			"modifiers": ["c"],
+			"templatePath": "ProviderProtocol",
+			"targetPath": "target/ProviderProtocol"
+		}
+	]	
+}
