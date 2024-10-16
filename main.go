@@ -1,42 +1,67 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"io"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 const PATH_TO_JSON = "files.json"
+const PATH_TO_TEMPLATE = "template/"
 
 func main() {
-	config, err := parseConfig()
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	files, err := parseJson(config.jsonPath)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
+	config := parseConfig()
+	files := parseJson(config.JsonPath)
 	files = filterFiles(files, config)
+	placeFiles(files, config)
+}
 
-	fmt.Println(files)
+func placeFiles(files Files, config Config) {
+	for _, file := range files.Files {
+		content := renderFileTemplate(file, config)
+		saveFile(file, content, config)
+	}
+}
+
+func saveFile(file File, content []byte, config Config) {
+	path := config.TargetPath + file.TargetPath
+	err := os.MkdirAll(filepath.Dir(path), fs.ModePerm)
+	check(err)
+
+	newFile, err := os.Create(path)
+	check(err)
+
+	defer newFile.Close()
+
+	newFile.Write(content)
+	newFile.Sync()
+}
+
+func renderFileTemplate(file File, config Config) []byte {
+	var fileContent bytes.Buffer
+	path := config.TemplatePath + file.TemplatePath
+	name := filepath.Base(path)
+	tmpl, err := template.New(name).ParseFiles(path)
+	check(err)
+
+	err = tmpl.Execute(&fileContent, config)
+	check(err)
+
+	return fileContent.Bytes()
 }
 
 func filterFiles(files Files, config Config) Files {
 	resultFiles := &Files{}
 
 	for _, file := range files.Files {
-		if file.hasOnOfModifiers(config.modifiers) {
+		if file.hasOnOfModifiers(config.Modifiers) {
 			resultFiles.Files = append(resultFiles.Files, file)
 		}
 	}
@@ -44,51 +69,59 @@ func filterFiles(files Files, config Config) Files {
 	return *resultFiles
 }
 
-func parseJson(path string) (Files, error) {
+func parseJson(path string) Files {
 	var files Files
 
 	jsonFile, err := os.Open(path)
-
-	if err != nil {
-		return files, err
-	}
+	check(err)
 
 	defer jsonFile.Close()
 
 	byteValue, err := io.ReadAll(jsonFile)
-
-	if err != nil {
-		return files, err
-	}
+	check(err)
 
 	json.Unmarshal(byteValue, &files)
 
-	return files, nil
+	return files
 }
 
-func parseConfig() (Config, error) {
+func parseConfig() Config {
 	config := &Config{}
 	flows := []string{}
 
 	name := flag.String("name", "", "Integration name")
 	flowFlag := flag.String("flow", "", "Integration flow types")
 	filesPath := flag.String("files", PATH_TO_JSON, "Json files structure")
+	templatePath := flag.String("template", PATH_TO_TEMPLATE, "Template folder")
+	targetPath := flag.String("target", "", "Target folder")
 
 	flag.Parse()
 
 	if *name == "" {
-		return Config{}, errors.New("Error: Name required")
+		panic(errors.New("Error: Name required"))
+	}
+
+	if *targetPath == "" {
+		panic(errors.New("Error: Target required"))
 	}
 
 	if *flowFlag != "" {
 		flows = strings.Split(*flowFlag, "")
 	} else {
-		return Config{}, errors.New("Error: Flow types reuqired")
+		panic(errors.New("Error: Flow types reuqired"))
 	}
 
-	config.name = *name
-	config.modifiers = flows
-	config.jsonPath = *filesPath
+	config.Name = *name
+	config.Modifiers = flows
+	config.JsonPath = *filesPath
+	config.TemplatePath = *templatePath
+	config.TargetPath = *targetPath
 
-	return *config, nil
+	return *config
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

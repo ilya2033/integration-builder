@@ -12,9 +12,11 @@ type Files struct {
 }
 
 type Config struct {
-	name      string
-	modifiers []string
-	jsonPath  string
+	Name         string
+	Modifiers    []string
+	JsonPath     string
+	TemplatePath string
+	TargetPath   string
 }
 
 func (this *File) HasModifier(modifier string) bool {
