@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -18,21 +19,30 @@ const PATH_TO_TEMPLATE = "template/"
 
 func main() {
 	config := parseConfig()
-	files := parseJson(config.JsonPath)
+	files := parseJson(config)
 	files = filterFiles(files, config)
 	placeFiles(files, config)
 }
 
 func placeFiles(files Files, config Config) {
+	fmt.Println("Start file placement")
 	for _, file := range files.Files {
 		content := renderFileTemplate(file, config)
 		saveFile(file, content, config)
 	}
+	fmt.Println("Finish file placement")
 }
 
 func saveFile(file File, content []byte, config Config) {
 	path := config.TargetPath + file.TargetPath
-	err := os.MkdirAll(filepath.Dir(path), fs.ModePerm)
+	_, err := os.Stat(path)
+
+	if err == nil {
+		fmt.Println(path + " already exists. Skip")
+		return
+	}
+
+	err = os.MkdirAll(filepath.Dir(path), fs.ModePerm)
 	check(err)
 
 	newFile, err := os.Create(path)
@@ -42,9 +52,13 @@ func saveFile(file File, content []byte, config Config) {
 
 	newFile.Write(content)
 	newFile.Sync()
+
+	fmt.Println("File saved - " + file.Name)
 }
 
 func renderFileTemplate(file File, config Config) []byte {
+	fmt.Println("Start render - " + file.Name)
+
 	var fileContent bytes.Buffer
 	path := config.TemplatePath + file.TemplatePath
 	name := filepath.Base(path)
@@ -54,10 +68,12 @@ func renderFileTemplate(file File, config Config) []byte {
 	err = tmpl.Execute(&fileContent, config)
 	check(err)
 
+	fmt.Println("Finish render - " + file.Name)
 	return fileContent.Bytes()
 }
 
 func filterFiles(files Files, config Config) Files {
+	fmt.Println("Start file filtering")
 	resultFiles := &Files{}
 
 	for _, file := range files.Files {
@@ -66,22 +82,29 @@ func filterFiles(files Files, config Config) Files {
 		}
 	}
 
+	fmt.Println("Finish file filtering")
 	return *resultFiles
 }
 
-func parseJson(path string) Files {
+func parseJson(config Config) Files {
 	var files Files
+	var buffer bytes.Buffer
 
-	jsonFile, err := os.Open(path)
+	fmt.Println("Start json parsing")
+	jsonFile, err := os.Open(config.JsonPath)
 	check(err)
 
 	defer jsonFile.Close()
 
 	byteValue, err := io.ReadAll(jsonFile)
 	check(err)
+	tmpl, err := template.New("").Parse(string(byteValue))
+	tmpl.Execute(&buffer, config)
+	check(err)
 
-	json.Unmarshal(byteValue, &files)
+	json.Unmarshal(buffer.Bytes(), &files)
 
+	fmt.Println("Finish json parsing")
 	return files
 }
 
