@@ -11,7 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/template"
+	"time"
 )
 
 const PATH_TO_JSON = "files.json"
@@ -26,10 +28,20 @@ func main() {
 
 func placeFiles(files Files, config Config) {
 	fmt.Println("Start file placement")
+	wg := sync.WaitGroup{}
+
 	for _, file := range files.Files {
-		content := renderFileTemplate(file, config)
-		saveFile(file, content, config)
+		wg.Add(1)
+		go func(file File, config Config) {
+			defer wg.Done()
+
+			content := renderFileTemplate(file, config)
+			saveFile(file, content, config)
+
+		}(file, config)
 	}
+
+	wg.Wait()
 	fmt.Println("Finish file placement")
 }
 

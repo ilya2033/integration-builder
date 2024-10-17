@@ -5,6 +5,30 @@
 			"modifiers": ["m", "h"],
 			"templatePath": "ProviderProtocol.tmpl",
 			"targetPath": "target/ProviderProtocol.php"
+		},
+		{
+			"name": "test2 {{ .Name }}",
+			"modifiers": ["m", "h"],
+			"templatePath": "ProviderProtocol.tmpl",
+			"targetPath": "target/ProviderProtocol.php"
+		},
+		{
+			"name": "test3 {{ .Name }}",
+			"modifiers": ["m", "h"],
+			"templatePath": "ProviderProtocol.tmpl",
+			"targetPath": "target/ProviderProtocol.php"
+		},
+		{
+			"name": "test4 {{ .Name }}",
+			"modifiers": ["m", "h"],
+			"templatePath": "ProviderProtocol.tmpl",
+			"targetPath": "target/ProviderProtocol.php"
+		},
+		{
+			"name": "test5 {{ .Name }}",
+			"modifiers": ["m", "h"],
+			"templatePath": "ProviderProtocol.tmpl",
+			"targetPath": "target/ProviderProtocol.php"
 		}
 	]	
 }
