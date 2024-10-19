@@ -47,13 +47,35 @@ func filterFiles(files Files, config Config) Files {
 	resultFiles := &Files{}
 
 	for _, file := range files.Files {
-		if file.hasOnOfModifiers(config.Modifiers) {
+		if file.hasOneOfModifiers(config.Modifiers) {
 			resultFiles.Files = append(resultFiles.Files, file)
 		}
 	}
 
 	log("Finish file filtering")
 	return *resultFiles
+}
+
+func (this *File) HasModifier(modifier string) bool {
+	for _, fileMod := range this.Modifiers {
+		if fileMod == modifier {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (this *File) hasOneOfModifiers(mods []string) bool {
+	for _, fileMod := range this.Modifiers {
+		for _, modifier := range mods {
+			if fileMod == modifier {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func parseFilesFromJson(config Config) Files {

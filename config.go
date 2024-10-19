@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+const PATH_TO_JSON = "files.json"
+const PATH_TO_TEMPLATE = "template/"
+
 type Config struct {
 	Name         string
 	Modifiers    []string
@@ -26,28 +29,6 @@ func (this *Config) CheckAllRequiredFilled() {
 	if len(this.Modifiers) == 0 {
 		panic(errors.New("Error: Flow types reuqired"))
 	}
-}
-
-func (this *File) HasModifier(modifier string) bool {
-	for _, fileMod := range this.Modifiers {
-		if fileMod == modifier {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (this *File) hasOnOfModifiers(mods []string) bool {
-	for _, fileMod := range this.Modifiers {
-		for _, modifier := range mods {
-			if fileMod == modifier {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 func parseConfig() Config {
