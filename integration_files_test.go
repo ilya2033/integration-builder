@@ -34,3 +34,32 @@ func TestHasOneOfModifiers_False(t *testing.T) {
 	result := file.hasOneOfModifiers([]string{"c", "m"})
 	assert.False(t, result)
 }
+
+func TestFilterFiles(t *testing.T) {
+	testFiles := &Files{
+		Files: []File{
+			{Name: "file1", Modifiers: []string{"m", "h"}},
+			{Name: "file2", Modifiers: []string{"m", "w"}},
+			{Name: "file3", Modifiers: []string{"h", "w"}},
+			{Name: "file4", Modifiers: []string{"h", "c"}},
+			{Name: "file5", Modifiers: []string{}},
+			{Name: "file6", Modifiers: []string{"c"}},
+		},
+	}
+
+	config := &Config{
+		Modifiers: []string{"m", "w"},
+	}
+
+	want := &Files{
+		Files: []File{
+			{Name: "file1", Modifiers: []string{"m", "h"}},
+			{Name: "file2", Modifiers: []string{"m", "w"}},
+			{Name: "file3", Modifiers: []string{"h", "w"}},
+		},
+	}
+
+	result := filterFiles(*testFiles, *config)
+
+	assert.Equal(t, *want, result)
+}
