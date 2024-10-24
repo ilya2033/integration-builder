@@ -2,7 +2,12 @@ package main
 
 func main() {
 	config := parseConfig()
-	files := parseFilesFromJson(config)
-	files = filterFiles(files, config)
-	placeFiles(files, config)
+	allFiles := parseFilesFromJson(config)
+	allFiles.Files = filterFiles(allFiles.Files, config)
+	placeFiles(allFiles.Files, config)
+
+	if config.WithTests {
+		allFiles.TestFiles = filterFiles(allFiles.TestFiles, config)
+		placeFiles(allFiles.TestFiles, config)
+	}
 }

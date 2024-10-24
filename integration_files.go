@@ -18,12 +18,13 @@ type File struct {
 }
 
 type Files struct {
-	Files []File `json:"files"`
+	Files     []File `json:"files"`
+	TestFiles []File `json:"testFiles"`
 }
 
-func fillFileWithContent(file File, config Config) {
+func fillFileWithContent(file File, path string, config Config) {
 	content := renderFileTemplate(file, config)
-	saveFile(file, content, config)
+	saveFile(file, content, path)
 }
 
 func renderFileTemplate(file File, config Config) []byte {
@@ -42,18 +43,18 @@ func renderFileTemplate(file File, config Config) []byte {
 	return fileContent.Bytes()
 }
 
-func filterFiles(files Files, config Config) Files {
+func filterFiles(files []File, config Config) []File {
 	log("Start file filtering")
-	resultFiles := &Files{}
+	resultFiles := []File{}
 
-	for _, file := range files.Files {
+	for _, file := range files {
 		if file.hasOneOfModifiers(config.Modifiers) {
-			resultFiles.Files = append(resultFiles.Files, file)
+			resultFiles = append(resultFiles, file)
 		}
 	}
 
 	log("Finish file filtering")
-	return *resultFiles
+	return resultFiles
 }
 
 func (this *File) HasModifier(modifier string) bool {
@@ -100,19 +101,25 @@ func parseFilesFromJson(config Config) Files {
 	return files
 }
 
-func placeFiles(files Files, config Config) {
+func generateFiles(files []File, basePath string, config Config) {
 	log("Start file placement")
 	wg := sync.WaitGroup{}
 
-	for _, file := range files.Files {
+	for _, file := range files {
 		wg.Add(1)
-		go func(file File, config Config) {
+		go func(file File, basePath string, config Config) {
 			defer wg.Done()
-			fillFileWithContent(file, config)
+			path := basePath + file.TargetPath
+			fillFileWithContent(file, path, config)
 
-		}(file, config)
+		}(file, basePath, config)
 	}
 
 	wg.Wait()
 	log("Finish file placement")
+
+}
+
+func placeFiles(files []File, config Config) {
+	generateFiles(files, config.TargetPath, config)
 }

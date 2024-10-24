@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 )
 
-func saveFile(file File, content []byte, config Config) {
-	path := config.TargetPath + file.TargetPath
+func saveFile(file File, content []byte, path string) {
 	fileExists := checkIfFileExists(path)
 
 	if fileExists {

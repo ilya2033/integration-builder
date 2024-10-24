@@ -30,5 +30,13 @@
 			"templatePath": "ProviderProtocol.tmpl",
 			"targetPath": "target/ProviderProtocol.php"
 		}
-	]	
+	],
+	"testFiles": [
+		{
+			"name": "test1 {{ .Name }}",
+			"modifiers": ["m", "h"],
+			"templatePath": "tests/ProviderProtocolTest.tmpl",
+			"targetPath": "tests/ProviderProtocolTest.php"
+		}
+	]
 }
